@@ -1,1 +1,12 @@
-
+Python知识
+[[Python-面向对象]], [[Python-数据处理]], [[Python-基础]], [[Python-计算机知识]], [[Python-语法]]
+一、 Web框架 --  [[Django]]
+二、 数据库 -- [[Python开发/数据库|数据库]]设计优化原理等
+三、 HTTP协议 -- [[HTTP协议（Restful API)]]
+四、 前端技术 -- [[Python-正则表达式]]HTML, CSS, Javascript
+五、 安全性 -- [[Web安全]]
+六、 性能优化 -- [[Python-开发知识]]缓存，异步处理
+七、 版本控制 -- [[Git]]
+八、 部署与维护 -- [[Python-开发知识]]监控，日志管理等
+九、 测试 -- [[Python-开发知识]]
+十、 容器化技术 -- [[Python-开发知识]]
