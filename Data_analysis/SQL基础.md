@@ -190,6 +190,147 @@ COALESCE() 返回第一个非空的值，若都为空返回NULL
 SQL Server使用存储过程中的优点：
 执行速度快；封装复杂操作；允许模块化程序设计；减少网络流量（只用传送调用语句，不用发很多代码）
 
+
+-- SQL
+DELETE FROM <表名> [WHERE <条件>] 没有*
+-- 完整的SELECT查询顺序
+SELECT DISTINCT column, AGG_FUNC(column_or_expression),col_expression AS expr_description …
+FROM mytable AS mytable
+    INNER/LEFT/RIGHT/FULL JOIN another_table
+      ON mytable.column = another_table.column
+    WHERE constraint_expression AND/OR column IS/IS NOT NULL
+    GROUP BY column
+    HAVING constraint_expression
+    ORDER BY column ASC -- 升序/DESC降序 （默认是升序）
+    LIMIT count OFFSET COUNT;
+
+
+DISTINCT 不会有重复的
+
+AS 别名可以用在表上和属性上
+
+-- 多表查询:Normalization 数据库范式是数据表设计的规范，在范式规范下，数据库里每个表存储的重复数据降到最少（这有助于数据的一致性维护），同时在数据库范式下，表和表之间不再有很强的数据耦合，可以独立的增长。主键(primary key) 唯一标识，在一个表中不能重复，可以把两个表中具有相同 主键ID的数据连接起来。
+
+A join B, left join:保留A的全部和交集；right join保留B的所有行和交集；inner join交集；full join全部
+
+*MYSQL中，NULL值与任何值值比较永不为真*
+
+GROUP BY 可以对具有相同属性的行进行求和等计算
+HAVING group_condition; 对分组之后的数据再删选，用HAVING进行筛选=不用group by时简单的where
+
+LIMIT 和 OFFSET 子句通常和ORDER BY 语句一起使用，当我们对整个结果集排序之后，我们可以 LIMIT来指定只返回多少行结果 ,用 OFFSET来指定从哪一行开始返回。你可以想象一下从一条长绳子剪下一小段的过程，我们通过 OFFSET 指定从哪里开始剪，用 LIMIT 指定剪下多少长度。从第三位开始OFFSET=2
+
+-- operator关键字
+AND OR
+=, !=, <>, <, <=, >, >=
+BETWEEN A AND B (inclusive)
+NOT BETWEEN A AND B (exclusive)
+IN(...) exist in a list
+NOT IN(..)
+-- 模糊查询LIKE 
+LIKE = "="
+NOT LIKE = "!="
+-- 通配符%
+LIKE "%AT%" 表示AT前后可以有任何字符
+LIKE "AN_" 代表AN后有且仅有一个字符
+
+-- 统计函数
+COUNT(*), COUNT(column)	计数！COUNT(*) 统计数据行数，COUNT(column) 统计column非NULL的行数.
+MIN(column)	找column最小的一行.
+MAX(column)	找column最大的一行.
+AVG(column)	对column所有行取平均值.
+SUM(column)	对column所有行求和.
+
+
+-- 例题
+
+SELECT * FROM TableName;  查看全表
+SELECT 1+1 可以直接做计算
+
+-- 列出所有在Chicago西部的城市，从西到东排序(包括所有字段)
+SELECT * FROM north_american_cities where Longitude<
+(SELECT Longitude from north_american_cities where city="Chicago") 
+ORDER BY Longitude ASC;
+
+-- 找到所有办公室里的所有角色（包含没有雇员的）,并做唯一输出(DISTINCT) 所有的办公室都需要列出来
+SELECT DISTINCT Building_name,Role FROM Buildings
+LEFT JOIN employees on building_name=building;
+
+-- 按角色(Role)统计一下每个角色的平均就职年份 
+SELECT Role, AVG(Years_employed) FROM employees 
+group by Role;
+
+-- 按角色分组算出每个角色按有办公室和没办公室的统计人数(列出角色，数量，有无办公室,注意一个角色如果部分有办公室，部分没有需分开统计） 属性有：Role	Name	Building	Years_employed
+SELECT COUNT(Name), Role,CASE when Building is NOT NULL 
+THEN '1' ELSE '0' END AS bn
+FROM Employees
+GROUP BY Role,bn;
+
+-- 按导演分组计算销售总额,求出平均销售额冠军（统计结果过滤掉只有单部电影的导演，列出导演名，总销量，电影数量，平均销量) 
+SELECT Director, SUM(Domestic_sales+International_sales)as total,
+count(*) as number,SUM(Domestic_sales+International_sales)/count(title) as average
+FROM movies 
+INNER JOIN Boxoffice on movie_id=id
+group by director
+HAVING COUNT(Title) > 1
+order by average desc
+limit 1;
+
+-- 找出每部电影和单部电影销售冠军之间的销售差，列出电影名，销售额差额 变态难啊阿啊
+SELECT Title, (SELECT MAX(Domestic_sales+International_sales) 不能是单个数值
+FROM Boxoffice) - SUM(Domestic_sales+International_sales) 
+AS Diff FROM Movies INNER JOIN Boxoffice 
+ON Movies.ID = Boxoffice.Movie_id 
+GROUP BY Title; 
+
+
+数据定义（SQL DDL）用于定义SQL模式、基本表、视图和索引的创建和撤消操作。
+数据操纵（SQL DML）数据操纵分成数据查询和数据更新两类。数据更新又分成插入、删除、和修改三种操作。
+数据控制（DCL）包括对基本表和视图的授权，完整性规则的描述，事务控制等内容。
+嵌入式SQL的使用规定（TCL）涉及到SQL语句嵌入在宿主语言程序中使用的规则。
+
+
+Rank()函数：为结果集分区中每一行分配一个排名，行等级由一加上前面的等级指定。 
+RANK（） OVER（ 
+    PARTITION BY　表达式      ##将结果集划分为分区
+    ORDER BY　表达式　［ASC｜DESC］ ##对分区内的进行排序
+） 
+
+创建视图的语法为CREATE VIEW view_name[column] AS select_statement [WITH CHECK OPTION]
+
+Mysql中表student_table(id,name,birth,sex)，查询男生、女生人数分别最多的3个姓氏及人数，正确的SQL是（）？ 使用UNION all
+SELECT * from
+(SELECT sex ,substr(name,1,1) as first_name ,count(*) as c1 
+from student_table 
+where length(name) >=1 and sex = '男'
+group by first_name 
+order by sex ,c1 desc limit 3
+)t1
+UNION all
+SELECT * from
+(SELECT sex ,substr(name,1,1) as first_name ,count(*) as c1 
+from student_table 
+where length(name) >=1 and sex = '女'
+group by first_name 
+order by sex ,c1 desc limit 3
+)t2;
+
+在用union组合查询时，只能使用一条order by子句，它必须位于最后一条select语句之后。对于结果集，不存在用一种方式排序一部分，而用另一种方式排序另一部分的情况，因此不允许使用多条order by子句。
+
+
+授予用户SQLTest对数据库Sales的CUSTOMERS表的列cid、cname的查询权限
+grant select on CUSTOMERS(cid,cname) to SQLTest
+
+
+SQL Server存储过程中的优缺点：
+优点：执行速度快，允许组件式编程，减少网络流量，提高系统安全性
+缺点：移植性差，难以调试和维护，服务器不能负载均衡
+
+SELECT ROUND(2.35) 四舍五入保留整数 2
+SELECT ROUND(1.96,1) 四舍五入保留小数点后一位 2.0
+SELECT TRUNCATE(1.99,1) 对前面参数进行截取操作，截至小数点后一位，结果为1.9
+SELECT TRUNCATE(2.83,0) 对前面参数进行截取操作，截至小数点，结果为2
+
 ```
 SELECT STUFF('lo ina', 3, 1, 've ch') 在第三个位置删掉1个字符并插入后面的
 --> love china
@@ -303,3 +444,4 @@ AS Diff FROM Movies INNER JOIN Boxoffice
 ON Movies.ID = Boxoffice.Movie_id 
 GROUP BY Title; 
 ```
+
